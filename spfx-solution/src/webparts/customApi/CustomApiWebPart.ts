@@ -46,6 +46,29 @@ export default class CustomApiWebPart extends BaseClientSideWebPart<ICustomApiWe
     finally {
       this.domElement.innerHTML += `<br>Finished.</div>`;
     }
+
+    try {
+      this.domElement.innerHTML += `<br>Getting an access token for the resource '${"https://graph.microsoft.com"}'`;
+      const client: AadHttpClient = await this.context.aadHttpClientFactory.getClient("https://graph.microsoft.com");
+      const functionUrl = `https://graph.microsoft.com/v1.0/groups/413f757a-1fd9-4e72-83b6-0d4deb137982/members`;
+      this.domElement.innerHTML += `<br>Access token received.<br>Connecting to the function app '${functionUrl}'`;
+      const response: HttpClientResponse = await client.get(functionUrl, AadHttpClient.configurations.v1);
+      if (response.status === 200) {
+        this.domElement.innerHTML += `<br>Data received:<br>`;
+        const data = await response.json();
+        this.domElement.innerHTML += JSON.stringify(data.value);
+      } else {
+        this.domElement.innerHTML += `<br>Could not get the data from the function app, received HTTP status ${response.status}`;
+      }
+    }
+    catch (error: unknown) {
+      const errorMessage = formatError(error);
+      this.domElement.innerHTML += `<br>Unexpected error: ${errorMessage}`;
+      return;
+    }
+    finally {
+      this.domElement.innerHTML += `<br>Finished.</div>`;
+    }
   }
 
   protected onInit(): Promise<void> {
